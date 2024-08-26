@@ -1,0 +1,50 @@
+--chap07_ex1_quiz1
+--구구단 중 3단을 출력하는 익명블록을 만들어보자
+DECLARE
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('3 * 1 = '||3*1);
+    DBMS_OUTPUT.PUT_LINE('3 * 2 = '||3*2);
+    DBMS_OUTPUT.PUT_LINE('3 * 3 = '||3*3);
+    DBMS_OUTPUT.PUT_LINE('3 * 4 = '||3*4);
+    DBMS_OUTPUT.PUT_LINE('3 * 5 = '||3*5);
+    DBMS_OUTPUT.PUT_LINE('3 * 6 = '||3*6);
+    DBMS_OUTPUT.PUT_LINE('3 * 7 = '||3*7);
+    DBMS_OUTPUT.PUT_LINE('3 * 8 = '||3*8);
+    DBMS_OUTPUT.PUT_LINE('3 * 9 = '||3*9);
+END;
+
+--chap07_ex1_quiz2
+--사원 테이블에서 201번 사원의 이름과 이메일주소를 출력하는 익명블록을 만들어보자.
+DECLARE
+vs_emp_name employees.emp_name%TYPE;
+vs_email employees.email%TYPE;
+BEGIN
+    SELECT emp_name, email
+     INTO vs_emp_name, vs_email
+     FROM employees
+    WHERE employee_id = 201;
+    DBMS_OUTPUT.PUT_LINE(vs_emp_name||' - '||vs_email);
+END;
+
+--chap07_ex1_quiz3
+--사원테이블에서 사원번호가 제일 큰 사원을 찾아낸 뒤, 이 번호+1번으로 아래의 사원을 
+--사원테이블에 신규 입력하는 익명블록을 만들어보자.
+
+DECLARE
+    vs_max_empno employees.employee_id%TYPE;
+BEGIN
+    SELECT MAX(employee_id)
+    INTO vs_max_empno
+    FROM employees;
+    INSERT INTO employees(employee_id, emp_name, email, hire_date,department_id) 
+     VALUES(vs_max_empno + 1,'Harrision Ford', 'HARRIS', SYSDATE, 50);
+    COMMIT;
+END;
+
+--데이터 조회용 코그
+SELECT *
+FROM employees
+WHERE email = 'HARRIS';
+
+--데이터 삭제용 코드
+DELETE FROM employees WHERE email = 'HARRIS';

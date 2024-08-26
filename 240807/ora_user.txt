@@ -1,0 +1,62 @@
+SELECT table_name FROM user_tables;
+
+--테이블
+
+CREATE TABLE ex2_1(
+COLUMN1 CHAR(10),
+COLUMN2 VARCHAR2(10),
+COLUMN3 NVARCHAR2(10),
+COLUMN4 NUMBER
+);
+
+--데이터 타입
+INSERT INTO ex2_1(column1, column2) VALUES ('abc', 'abc');
+
+--데이터 조회
+SELECT column1, LENGTH(column1) AS len1,
+column2, LENGTH(column2) AS len2
+FROM ex2_1;
+
+CREATE TABLE ex2_2(
+COLUMN1 VARCHAR2(3), --byte
+COLUMN2 VARCHAR2(3 byte), 
+COLUMN3 VARCHAR2(3 char) 
+);
+
+INSERT INTO ex2_2 VALUES('abc', 'abc', 'abc');
+
+SELECT column1, LENGTH(column1) AS len1,
+column2, LENGTH(column2) AS len2,
+column3, LENGTH(column3) AS len3
+FROM ex2_2;
+
+INSERT INTO ex2_2 VALUES('홍길동', '홍길동', '홍길동');
+
+INSERT INTO ex2_2(column3) VALUES('홍길동');
+
+SELECT column3, LENGTH(column3) AS len3, LENGTHB(column3) AS bytelen
+FROM ex2_2;
+
+--숫자 데이터 타입
+CREATE TABLE ex2_3(
+COL_INT INTEGER,
+COL_DEC DECIMAL,
+COL_NUM NUMBER
+);
+
+SELECT column_id, column_name, data_type, data_length
+FROM user_tab_cols
+WHERE table_name = 'EX2_3'  --이게 조건임
+ORDER BY column_id;  --이걸로 정렬해라
+
+--날짜 데이터 타입
+CREATE TABLE ex2_5 (
+    col_date      DATE,
+    col_timestamp TIMESTAMP
+);
+
+INSERT INTO ex2_5 VALUES (SYSDATE, SYSTIMESTAMP);
+
+
+SELECT * --테이블의 모든 칼럼을 선택하라는 뜻이다!
+FROM ex2_5;

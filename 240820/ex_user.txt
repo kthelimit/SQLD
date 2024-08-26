@@ -1,0 +1,249 @@
+--chap06_ex3_quiz1
+SELECT a.ename, a.job
+FROM employee a, (SELECT job FROM employee WHERE eno = 7788) b
+WHERE a.job = b.job;
+
+--서브쿼리니까 이렇게 쓰는 거구나...
+SELECT ename, job
+FROM employee
+WHERE job = (SELECT job FROM employee WHERE eno = 7788);
+
+
+
+--chap06_ex3_quiz2
+SELECT a.ename, a.job
+FROM employee a, (SELECT salary FROM employee WHERE eno = 7499) b
+WHERE a.salary > b.salary;
+
+SELECT ename, job
+FROM employee 
+WHERE salary > (SELECT salary FROM employee WHERE eno = 7499);
+
+--chap06_ex3_quiz3
+SELECT ename, job, salary
+FROM employee 
+WHERE salary =(SELECT MIN(salary) FROM employee);
+
+--chap06_ex3_quiz4
+SELECT a.job, b.min_avg
+FROM    (SELECT job, avg(salary) AS average 
+        FROM employee GROUP BY job) a,
+        (SELECT MIN(average) as min_avg
+         FROM (SELECT job, avg(salary) AS average 
+         FROM employee GROUP BY job))b
+    where a.average = b.min_avg;
+    
+SELECT MIN(ROUND(AVG(salary),1))
+FROM employee
+GROUP BY job;
+
+SELECT job, ROUND(AVG(salary),1)
+FROM employee
+GROUP BY job
+HAVING ROUND(AVG(salary),1) = (SELECT MIN(ROUND(AVG(salary),1))FROM employee GROUP BY job);
+
+--chap06_ex3_quiz5
+SELECT a.ename, a.salary, a.dno
+FROM employee a, (SELECT dno, MIN(salary) AS sal FROM employee GROUP BY dno) b
+WHERE a.salary = b.sal
+AND a.dno = b.dno;
+
+SELECT ename, salary, dno
+FROM employee
+WHERE salary IN (SELECT MIN(salary) FROM employee GROUP BY dno);
+
+SELECT ename, salary, dno
+FROM employee
+WHERE (dno, salary) IN (SELECT dno, MIN(salary) FROM employee GROUP BY dno);
+
+
+--chap06_ex3_quiz6
+
+--analyst를 조회해봄
+SELECT salary 
+FROM employee 
+WHERE job = 'ANALYST';
+
+
+
+SELECT eno,ename, job, salary
+FROM employee
+WHERE salary < ANY(SELECT salary FROM employee WHERE job = 'ANALYST') 
+--값이 여러개다보니.. 최대값이랑 같은 결과가 나온다.
+AND job != 'ANALYST';
+
+
+
+--최대치 기준인지 최저치 기준인지....
+--최대 기준
+SELECT a.eno, a.ename, a.job, a.salary
+FROM employee a, (SELECT MAX(salary) as max_sal FROM employee WHERE job = 'ANALYST') b
+WHERE a.salary < b.max_sal
+AND job != 'ANALYST';
+
+SELECT eno,ename, job, salary
+FROM employee
+WHERE salary < (SELECT MAX(salary) FROM employee WHERE job = 'ANALYST')
+AND job != 'ANALYST';
+
+--최저 기준
+SELECT a.eno, a.ename, a.job, a.salary
+FROM employee a, (SELECT MIN(salary) as min_sal FROM employee WHERE job = 'ANALYST') b
+WHERE a.salary < b.min_sal
+AND job != 'ANALYST';
+
+SELECT eno,ename, job, salary
+FROM employee
+WHERE salary < (SELECT MIN(salary) FROM employee WHERE job = 'ANALYST')
+AND job != 'ANALYST';
+
+--평균 기준
+SELECT eno,ename, job, salary
+FROM employee
+WHERE salary < (SELECT AVG(salary) FROM employee WHERE job = 'ANALYST')
+AND job != 'ANALYST';
+
+
+
+--chap06_ex3_quiz7
+SELECT ename
+FROM employee
+WHERE eno IN(SELECT eno FROM employee WHERE manager IS NULL);
+
+
+--chap06_ex3_quiz8
+SELECT ename
+FROM employee
+WHERE manager IS NOT NULL;
+
+SELECT  ename
+FROM employee
+WHERE manager IN (SELECT manager
+            FROM employee);
+            
+SELECT ename
+FROM employee
+WHERE eno IN(SELECT eno FROM employee WHERE manager IS NOT NULL);
+
+--chap06_ex3_quiz9
+SELECT other.ename, other.hiredate
+FROM employee other, (SELECT dno FROM employee WHERE ename = 'BLAKE') blake
+WHERE other.dno = blake.dno
+AND other.ename != 'BLAKE';
+
+SELECT ename, hiredate
+FROM employee
+WHERE dno = (SELECT dno FROM employee WHERE ename = 'BLAKE')
+AND ename != 'BLAKE';
+
+
+
+--chap06_ex3_quiz10
+SELECT a.eno, a.ename
+FROM employee a, (SELECT AVG(salary) avg_sal FROM employee) b
+WHERE a.salary>=b.avg_sal
+ORDER BY a.salary;
+
+SELECT eno,ename
+FROM employee
+WHERE salary>=(SELECT AVG(salary)FROM employee)
+ORDER BY salary;
+
+
+--chap06_ex3_quiz11
+SELECT k.eno, k.ename, other.eno, other.ename
+FROM (SELECT eno, dno, ename FROM employee WHERE ename LIKE '%K%') k, employee other
+WHERE k.dno = other.dno
+AND k.ename != other.ename
+ORDER BY k.eno;
+
+SELECT eno, ename
+FROM  employee
+WHERE dno IN (SELECT dno FROM employee WHERE ename LIKE '%K%');
+
+
+
+--chap06_ex3_quiz12
+SELECT a.ename, a.dno, a.job
+FROM employee a, department b
+WHERE a.dno = b.dno
+AND b.loc = 'DALLAS';
+
+SELECT ename,dno, job
+FROM employee
+WHERE dno = (SELECT dno FROM department WHERE loc  = 'DALLAS');
+
+
+
+--chap06_ex3_quiz13
+SELECT a.ename, a.salary
+FROM employee a, employee king
+WHERE king.ename = 'KING'
+AND king.eno = a.manager;
+
+
+SELECT ename, salary
+FROM employee
+WHERE manager=(SELECT eno FROM employee WHERE ename = 'KING');
+
+--chap06_ex3_quiz14
+SELECT a.dno, a.eno, a.job
+FROM employee a, department b
+WHERE b.dname = 'RESEARCH'
+AND b.dno = a.dno;
+
+SELECT dno,eno,job
+FROM employee
+WHERE dno = (SELECT dno FROM department WHERE dname = 'RESEARCH');
+
+
+
+
+--chap06_ex3_quiz15
+SELECT DISTINCT a.eno, a.ename, a.salary
+FROM employee a,(SELECT AVG(salary) avg_sal FROM employee) b,
+(SELECT dno, ename FROM employee WHERE ename LIKE '%M%')c
+WHERE a.salary > b.avg_sal
+AND c.dno = a.dno
+AND c.ename != a.ename;
+
+SELECT eno, ename, salary
+FROM employee
+WHERE salary > (SELECT AVG(salary)FROM employee)
+AND dno IN (SELECT dno FROM employee WHERE ename LIKE '%M%');
+
+
+
+
+--chap06_ex3_quiz16
+SELECT a.job
+FROM (SELECT job, AVG(salary)avg_salary FROM employee GROUP BY job) a,
+(SELECT MIN(avg_salary) min_avg FROM (SELECT job, AVG(salary)avg_salary FROM employee GROUP BY job))b
+WHERE a.avg_salary = b.min_avg;
+--having 어케 쓰는 거더라..
+
+
+SELECT job
+FROM employee
+GROUP BY job
+HAVING ROUND(AVG(salary),1)=(SELECT MIN(ROUND(AVG(salary),1)) FROM employee GROUP BY job);
+--그러니까.. 급여의 평균이 최소치인것을 확인하는 문구인 것이다.
+
+
+SELECT job, AVG(salary)
+FROM employee
+GROUP BY job
+HAVING AVG(salary)=(SELECT MIN(AVG(salary)) FROM employee GROUP BY job);
+
+
+
+
+--chap06_ex3_quiz17
+SELECT DISTINCT manager.eno, manager.ename
+FROM employee manager, employee other
+WHERE other.manager = manager.eno;
+
+SELECT eno,ename
+FROM employee
+WHERE eno IN (SELECT manager FROM employee);
+

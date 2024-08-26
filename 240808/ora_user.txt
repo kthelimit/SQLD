@@ -1,0 +1,243 @@
+INSERT INTO ex2_5 VALUES (SYSDATE, SYSTIMESTAMP);
+
+CREATE TABLE ex2_6(
+COL_NULL VARCHAR2(10),
+COL_NOT_NULL VARCHAR2(10) NOT NULL
+);
+
+INSERT INTO ex2_6 VALUES ('AA', ''); --오류
+
+INSERT INTO ex2_6 VALUES ('AA', 'BB');
+
+INSERT INTO ex2_6 VALUES ('', 'CC');
+
+SELECT *
+FROM ex2_6;
+
+SELECT constraint_name, constraint_type, table_name, search_condition
+FROM user_constraints
+WHERE table_name = 'EX2_6';
+
+DROP TABLE ex2_7
+
+--UNIQUE
+CREATE TABLE ex2_7(
+    col_unique_null  VARCHAR2(10) UNIQUE,
+    col_unique_nnull VARCHAR2(10) UNIQUE NOT NULL,
+    col_unique       VARCHAR2(10),
+    constraints       unique_nm1 UNIQUE(COL_UNIQUE)
+);
+
+
+SELECT constraint_name, constraint_type, table_name, search_condition
+FROM user_constraints
+WHERE table_name ='EX2_7';
+
+
+INSERT INTO ex2_7 VALUES('AA','AA','AA');
+INSERT INTO ex2_7 VALUES('', 'BB','BB');
+INSERT INTO ex2_7 VALUES('', 'CC', 'CC');
+INSERT INTO ex2_7 VALUES('', '', 'DD'); --오류
+
+
+
+--기본키
+CREATE TABLE ex2_8(
+COL1 VARCHAR2(10) PRIMARY KEY,
+COL2 VARCHAR2(10)
+);
+
+
+INSERT INTO ex2_8 VALUES('', 'AA'); --primary key는 not null에 unique다
+
+INSERT INTO ex2_8 VALUES('AA','AA');
+
+INSERT INTO ex2_8 VALUES('BB', 'AA'); 
+-- 얘는 입력이 된다. 왜냐면 첫번째 칼럼만 중복 불가임
+
+INSERT INTO ex2_8 VALUES('CC', ''); 
+
+--CHECK
+CREATE TABLE ex2_9(
+    num1 NUMBER constraints check1 CHECK ( num1 BETWEEN 1 AND 9 ),
+    gender VARCHAR2(10) constraints check2 CHECK ( gender IN ( 'MALE', 'FEMALE' ) )
+);
+
+INSERT INTO ex2_9 VALUES(10, 'MAN');
+INSERT INTO ex2_9 VALUES(5, 'FEMALE');
+
+--DEFAULT
+CREATE TABLE ex2_10(
+COL1 VARCHAR2(10) NOT NULL,
+COL2 VARCHAR2(10) NULL,
+CREATE_DATE DATE DEFAULT SYSDATE
+);
+
+INSERT INTO ex2_10(col1, col2) VALUES('AA', 'AA');
+
+DROP TABLE ORDERS;
+
+CREATE TABLE ORDERS(
+    ORDER_ID NUMBER(12,0) PRIMARY KEY,
+    ORDER_DATE DATE,
+    ORDER_MODE VARCHAR2(8 byte) CONSTRAINTS MODECHECK CHECK(ORDER_MODE IN('direct', 'online')),
+    CUSTOMER_ID NUMBER(6,0),
+    ORDER_STATUS NUMBER(2,0),
+    ORDER_TOTAL NUMBER(8,2) DEFAULT 0,
+    SALES_REP_ID NUMBER(6,0),
+    PROMOTION_ID NUMBER(6,0)
+);
+
+CREATE TABLE ORDERS(
+    ORDER_ID NUMBER(12,0),
+    ORDER_DATE DATE,
+    ORDER_MODE VARCHAR2(8 byte),
+    CUSTOMER_ID NUMBER(6,0),
+    ORDER_STATUS NUMBER(2,0),
+    ORDER_TOTAL NUMBER(8,2) DEFAULT 0,
+    SALES_REP_ID NUMBER(6,0),
+    PROMOTION_ID NUMBER(6,0),
+    CONSTRAINT PK_ORDER PRIMARY KEY(ORDER_ID),
+    CONSTRAINT CK_ORDER CHECK(ORDER_MODE IN('direct', 'online'))
+);
+
+
+--테이블 삭제
+DROP TABLE ex2_10;
+
+CREATE TABLE ex2_10(
+COL1 VARCHAR2(10) NOT NULL,
+COL2 VARCHAR2(10) NULL,
+CREATE_DATE DATE DEFAULT SYSDATE
+);
+
+--컬럼 이름 바꾸기
+ALTER TABLE ex2_10 RENAME COLUMN Col1 TO Col11;
+--컬럼 사이즈 바꾸기
+ALTER TABLE ex2_10 MODIFY col2 VARCHAR2(30);
+--컬럼 추가하기
+ALTER TABLE ex2_10 ADD col3 NUMBER;
+--컬럼 삭제하기
+ALTER TABLE ex2_10 DROP COLUMN Col3;
+--제약조건 추가하기
+ALTER TABLE ex2_10 ADD CONSTRAINT pk_ex2_10 PRIMARY KEY(Col1);
+--제약조건 삭제하기
+ALTER TABLE ex2_10 DROP CONSTRAINT pk_ex2_10;
+
+--컬럼 임시삭제(DROP하면 부하가 커서 나중에 한가할때 하려고.. 이미 UNUSED하면 복구 불가다)
+ALTER TABLE ex2_10 SET UNUSED(Col2);
+
+--임시 삭제한 컬럼 확인
+SELECT *
+FROM ALL_UNUSED_COL_TABS;
+
+--임시 삭제 -> 완전 삭제
+ALTER TABLE ex2_10 DROP UNUSED COLUMN;
+
+--정보 출력하기(한글. 이름/널/유형 출력해줌)
+DESC ex2_10;
+
+--제약조건 확인하기
+SELECT constraint_name, constraint_type, table_name, search_condition
+FROM user_constraints
+WHERE table_name ='EX2_10';
+
+--테이블 카피
+CREATE TABLE ex2_9_1 AS
+SELECT *
+FROM ex2_9;
+
+CREATE TABLE ex2_10_1 AS
+SELECT Col1
+FROM ex2_10;
+
+--뷰
+SELECT a.employee_id, a.emp_name, a.department_id, b.department_name --부서명 칼럼
+FROM employees   a, departments b -- 기니까 각각 a b로 명명한 것이다.
+WHERE a.department_id = b.department_id;
+
+--뷰 생성
+CREATE OR REPLACE VIEW emp_dept_v1 AS
+SELECT a.employee_id, a.emp_name, a.department_id, b.department_name --부서명 칼럼
+FROM employees   a, departments b -- 기니까 각각 a b로 명명한 것이다.
+WHERE a.department_id = b.department_id;
+
+CREATE OR REPLACE VIEW emp_dept_v1 AS
+SELECT a.employee_id, a.emp_name, a.department_id, b.department_name --부서명 칼럼
+FROM employees   a, departments b -- 기니까 각각 a b로 명명한 것이다.
+WHERE a.department_id = b.department_id WITH CHECK OPTION; --department_id 수정 불가
+
+CREATE OR REPLACE VIEW emp_dept_v1 AS
+SELECT a.employee_id, a.emp_name, a.department_id, b.department_name --부서명 칼럼
+FROM employees   a, departments b -- 기니까 각각 a b로 명명한 것이다.
+WHERE a.department_id = b.department_id WITH READ ONLY; --전부 수정 불가
+
+
+SELECT *
+FROM emp_dept_v1;
+
+--뷰는 일정 부분을 추가하고 삭제하는게 안된다.(데이터 말고 구조) 근데 덮어쓰기는 된다고 함.
+
+--뷰 삭제(원본데이터에 영향 없음)
+DROP VIEW emp_dept_v1;
+
+
+--인덱스
+CREATE UNIQUE INDEX ex2_10_ix01
+ON ex2_10(Col1);
+
+SELECT *
+FROM user_indexes --내장 뷰
+WHERE table_name = 'EX2_10';
+
+INSERT INTO ex2_10 (col1) VALUES('A');
+INSERT INTO ex2_10 (col1) VALUES('B');
+
+
+SELECT constraint_name, constraint_type, table_name, index_name
+FROM user_constraints
+WHERE table_name ='JOB_HISTORY';
+
+SELECT index_name, index_type, table_name, uniqueness
+FROM user_indexes
+WHERE table_name ='JOB_HISTORY';
+
+CREATE INDEX ex2_10_ix02
+ON ex2_10(Col1, CREATE_DATE);
+
+SELECT index_name, index_type, table_name, uniqueness
+FROM user_indexes
+WHERE table_name ='EX2_10';
+
+DROP INDEX ex2_10_ix02;
+
+--시노님
+CREATE OR REPLACE SYNONYM syn_channel
+FOR channels;
+--이 시노님은 public이라고 안 썼으니까 private이다.
+SELECT COUNT(*)
+FROM syn_channel;
+
+--시퀀스
+CREATE SEQUENCE my_seq1
+INCREMENT BY 1
+START WITH 1
+MINVALUE 1
+MAXVALUE 1000
+NOCYCLE
+NOCACHE;
+
+DELETE ex2_8; --기존 데이터를 지운다.
+
+INSERT INTO ex2_8 (Col1) VALUES(my_seq1.NEXTVAL);
+--현재 시퀀스 번호의 다음 번호를 발생시킴....
+
+SELECT my_seq1.CURRVAL
+FROM DUAL; -- 듀얼은 오라클이 지원해주는 가상 테이블임
+
+SELECT my_seq1.NEXTVAL
+FROM DUAL; -- 듀얼은 오라클이 지원해주는 가상 테이블임
+
+DROP SEQUENCE my_seq1;
+
+

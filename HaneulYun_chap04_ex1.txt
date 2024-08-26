@@ -1,0 +1,68 @@
+--chap04_ex1_quiz1
+--13자리보다 긴 애들이 있었다..... 그 애들은 제대로 출력이 안됨.
+SELECT employee_id, LPAD(SUBSTR(phone_number,4), 13, '(02)')
+FROM employees;
+
+--문제가 되는 애들도 멀쩡히 나오도록 수정함
+SELECT employee_id, CONCAT('(02)',SUBSTR(phone_number,4))
+FROM employees;
+
+
+--chap04_ex1_quiz2
+SELECT employee_id AS "사원번호", emp_name AS "사원명", hire_date AS "입사일자", FLOOR((MONTHS_BETWEEN(SYSDATE, hire_date))/12) AS "근속년수"
+FROM employees
+WHERE MONTHS_BETWEEN(SYSDATE, hire_date)>=120
+ORDER BY "근속년수" DESC;
+
+SELECT employee_id AS "사원번호", emp_name AS "사원명", hire_date AS "입사일자", ROUND((SYSDATE-hire_date)/365) AS "근속년수"
+FROM employees
+WHERE ROUND((SYSDATE-hire_date)/365)>=10
+ORDER BY 3; --입사일 기준으로 오름차순 정렬
+
+--chap04_ex1_quiz3
+SELECT cust_name, cust_main_phone_number, replace(cust_main_phone_number, '-','/') new_phone_number
+FROM customers;
+
+SELECT cust_name, cust_main_phone_number, translate(cust_main_phone_number, '-','/') new_phone_number
+FROM customers;
+
+--chap04_ex1_quiz4
+
+SELECT cust_name, cust_main_phone_number, translate(cust_main_phone_number, '-0123456789','/MYHERBSALT') new_phone_number
+FROM customers;
+
+--chap04_ex1_quiz5
+--(decode씀)
+
+SELECT cust_name "이름", cust_year_of_birth "출생년도",(TO_CHAR(SYSDATE,'YYYY')- cust_year_of_birth) "나이", 
+DECODE(TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth),-1)/10, 3, '30대', 4, '40대', 5,'50대','기타') "연령대"
+FROM customers;
+
+
+--chap04_ex1_quiz6
+--case쓰기
+SELECT cust_name "이름", (TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth) "나이", 
+CASE 
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth)) BETWEEN 1 AND 19 THEN '10대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 20 AND 29 THEN '20대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 30 AND 39 THEN '30대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 40 AND 49 THEN '40대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 50 AND 59 THEN '50대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 60 AND 69 THEN '60대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 70 AND 79 THEN '70대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 80 AND 89 THEN '80대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 90 AND 99 THEN '90대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 100 AND 109 THEN '100대'
+        END "연령대"
+FROM customers;
+
+--case 안쓰고 그냥 출력하기
+SELECT cust_name "이름", (TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth) "나이", 
+TRUNC((2024 - cust_year_of_birth),-1)||'대' "연령대"
+FROM customers;
+
+
+
+
+
+

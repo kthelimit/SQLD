@@ -1,0 +1,249 @@
+--SELECT
+SELECT employee_id, emp_name
+   FROM employees
+  WHERE salary > 5000;
+ 
+ SELECT employee_id, emp_name
+   FROM employees
+  WHERE salary > 5000
+  ORDER BY employee_id DESC;
+ 
+ 
+ SELECT employee_id, emp_name
+   FROM employees
+  WHERE salary > 5000
+   AND job_id='IT_PROG' --데이터의 값은 대소문자를 구분해서 'it_prog'라고 입력하면 안됨
+  ORDER BY employee_id;
+  
+   SELECT employee_id, emp_name
+   FROM employees
+  WHERE salary > 5000
+   OR job_id='IT_PROG' --데이터의 값은 대소문자를 구분해서 'it_prog'라고 입력하면 안됨
+  ORDER BY employee_id;
+  
+SELECT a.employee_id, a.emp_name, a.department_id, b.department_name AS dep_name
+FROM employees a, departments b
+WHERE a.department_id=b.department_id;
+
+--CREATE OR REPLACE VIEW 뷰명 AS
+--SELECT 
+--FROM 테이블명 혹은 뷰명
+--WHERE 조건
+--WITH CHECK OPTION;[WITH READ ONLY;
+
+CREATE OR REPLACE VIEW emp_dept_v3 AS
+SELECT a.employee_id, a.emp_name, a.department_id, b.department_name AS dep_name
+   FROM employees a, departments b
+WHERE a.department_id=b.department_id
+WITH CHECK OPTION;
+
+CREATE OR REPLACE VIEW emp_dept_v4 AS
+SELECT a.employee_id, a.emp_name, a.department_id, b.department_name AS dep_name
+   FROM employees a, departments b
+WHERE a.department_id=b.department_id
+WITH READ ONLY;
+
+INSERT INTO emp_dept_v4 VALUES(2,'AA', 2, 'asd');
+
+DROP TABLE ex3_1;
+--INSERT
+CREATE TABLE ex3_1(
+    col1 VARCHAR2(10),
+    col2 NUMBER,
+    col3 DATE
+);
+
+--promotion(묵시적 형변환)
+INSERT INTO ex3_1(col1,col2, col3) VALUES(10, '10', '2014-01-01');
+--타입이 안맞는데.... 프로모션(자동타입변환)해서 들어가짐.
+
+--UPDATE
+SELECT *
+FROM ex3_1;
+
+UPDATE ex3_1
+SET col2=50; --col2의 모든 데이터를 50으로 바꾸라는 뜻이다.
+
+UPDATE ex3_1
+SET col3=SYSDATE
+WHERE col3 IS NULL; --오라클은 blank를 null로 인식 못함
+
+INSERT INTO ex3_1(col1,col2,col3) VALUES('ABC', 10, SYSDATE);
+INSERT INTO ex3_1 VALUES('ABC', 10, SYSDATE); --위의 문장과 같은 뜻이다.
+
+INSERT INTO ex3_1(col3,col1,col2) VALUES(SYSDATE, 'DEF', 20);
+--컬럼 순서 바꿔도 되는데 VALUES순서도 바꿔줘야함(타입이 다르니까..)
+
+INSERT INTO ex3_1(col1,col2,col3) VALUES('ABC', 10, 30); --오류난다. 30은 DATE타입이 아니라서
+
+INSERT INTO ex3_1 VALUES('GHI', 10, SYSDATE);
+
+INSERT INTO ex3_1 (col1, col2) VALUES ('GHI', 20);
+
+INSERT INTO ex3_1 VALUES ('GHI', 30); --오류
+
+
+
+CREATE TABLE ex3_2(
+    emp_id NUMBER,
+    emp_name VARCHAR2(100)
+);
+
+
+INSERT INTO ex3_2(emp_id, emp_name)
+SELECT employee_id, emp_name
+FROM employees
+WHERE salary >5000;
+
+
+--MERGE
+DELETE ex3_3; --행 다 지우기용
+
+--생성
+CREATE TABLE ex3_3(
+employee_id NUMBER,
+bonus_amt NUMBER DEFAULT 0
+);
+
+--데이터 가져오기
+INSERT INTO ex3_3(employee_id)
+SELECT e.employee_id
+FROM employees e, sales s
+WHERE e.employee_id = s.employee_id
+AND s.SALES_MONTH BETWEEN '200010' AND '200012'
+GROUP BY e.employee_id;
+
+--조건에 맞는 사원 골라내기
+SELECT employee_id, manager_id, salary, salary*0.01
+WHERE employee_id IN(SELECT employee_id FROM ex3_3)
+AND manager_id = 146;
+--manager_id가 146인 사원을 찾아보면 161번이다. bonus_amt로 70
+
+--이건 3_3에 없지만 manager_id가 146인 사람 그리고 연봉이 8000이하인 사람  bonus_amt로 7.5
+SELECT employee_id, manager_id, salary, salary*0.001
+FROM employees
+WHERE employee_id NOT IN(SELECT employee_id FROM ex3_3)
+AND manager_id = 146 AND salary<8000;
+
+--머지문
+MERGE INTO ex3_3 d
+USING (SELECT employee_id,  salary, manager_id
+        FROM employees 
+        WHERE manager_id = 146) b
+        ON (d.employee_id = b.employee_id)
+WHEN MATCHED THEN
+ UPDATE SET d.bonus_amt = d.bonus_amt + b.salary*0.01
+ DELETE WHERE(b.employee_id = 161)
+WHEN NOT MATCHED THEN
+ INSERT (d.employee_id, d.bonus_amt) VALUES(b.employee_id, b.salary*.001)
+ WHERE (b.salary<8000);
+
+--조회
+SELECT *
+FROM ex3_3
+ORDER BY employee_id;
+  
+  
+  
+  
+  
+  
+  
+  
+--chap03_ex1_quiz1
+--ex3_6이란 테이블을 만들고 사원테이블(employees)에서 관리자 사번이 124번이고 급여가
+--2000에서 3000사이에 있는 사원의 사번, 사원명, 급여, 관리자사번을 
+--입력하는 INSERT문을 작성해보자.
+CREATE TABLE ex3_6(
+    employee_id NUMBER(6),
+    emp_name VARCHAR2(80),
+    salary NUMBER(8,2),
+    manager_id NUMBER(6)
+);
+delete ex3_6;
+
+INSERT INTO ex3_6
+SELECT employee_id,emp_name,salary,manager_id
+FROM employees
+WHERE manager_id=124 
+AND SALARY BETWEEN 2000 AND 3000;
+
+SELECT *
+FROM ex3_6
+ORDER BY employee_id;
+
+--chap03_ex1_quiz2
+DELETE ex3_3;
+
+INSERT INTO ex3_3(employee_id)
+SELECT e.employee_id
+FROM employees e, sales s
+WHERE e.employee_id = s.employee_id
+AND s.SALES_MONTH BETWEEN '200010' AND '200012'
+GROUP BY e.employee_id;
+
+--관리자 사번이 145번인 사원을 찾아 위 테이블에 있는 사원의 사번과 일치하면 
+-- 보너스 금액(bonus_amt)에 자신의 급여의 1%를 보너스로 갱신하고 ex3_3 테이블에 있는 
+-- 사원의 사번과 일치하지 않는 사원을 신규 입력(이때 보너스 금액은 급여의 0.5%로 한다)하는
+--MERGE문을 작성해보자.
+
+MERGE INTO ex3_3 d
+    USING (SELECT employee_id, salary, manager_id
+        FROM employees
+        WHERE manager_id = 145) b
+    ON (d.employee_id = b.employee_id)
+WHEN MATCHED THEN
+    UPDATE SET d.bonus_amt = d.bonus_amt + b.salary*0.01
+WHEN NOT MATCHED THEN
+    INSERT(d.employee_id, d.bonus_amt) VALUES(b.employee_id, b.salary*0.005);
+
+--확인용
+SELECT employee_id, salary, manager_id
+FROM employees
+WHERE manager_id =145;
+
+SELECT e.employee_id, e.salary, e.manager_id
+FROM employees e, ex3_3 d
+WHERE e.employee_id = d.employee_id
+ORDER BY e.employee_id;
+
+SELECT *
+FROM ex3_3
+ORDER BY employee_id;
+
+--DELETE 
+DELETE ex3_3
+WHERE bonus_amt = 80;
+
+--COMMIT, ROLLBACK, TRUNCATE
+CREATE TABLE ex3_4(
+employee_id NUMBER
+);
+
+INSERT INTO ex3_4 VALUES(100);
+
+COMMIT; --중간중간 해주자...
+--아마 디벨로퍼가 저장하면 자동 커밋 해주는것도 같다.
+
+--의사컬럼
+SELECT ROWNUM, employee_id
+FROM employees;
+
+SELECT ROWNUM, employee_id
+FROM employees
+WHERE ROWNUM <5;
+
+SELECT ROWNUM, employee_id, ROWID
+FROM employees
+WHERE ROWNUM <5;
+
+COMMIT;
+
+
+
+
+
+
+
+
+

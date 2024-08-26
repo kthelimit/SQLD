@@ -1,0 +1,69 @@
+--Chap02_ex2
+--3. 긴 이름을 저장할 수 있도록 EMP 테이블의 ENAME 테이블을 수정하기.
+ALTER TABLE EMP MODIFY ENAME VARCHAR(25);
+
+--4. EMPLOYEE 테이블을 복사해서 EMPLOYEE2라는 이름의 테이블 생성하되
+-- 사원번호, 이름, 급여, 부서번호 칼럼만 복사하고 새로 생성된 칼럼명을 각각
+-- EMP_ID, NAME, SAL, DEPT_ID로 지정하세요.
+CREATE TABLE EMPLOYEE2 AS
+SELECT ENO, ENAME, SALARY, DNO
+FROM EMPLOYEE;
+ALTER TABLE EMPLOYEE2 RENAME COLUMN ENO TO EMP_ID;
+ALTER TABLE EMPLOYEE2 RENAME COLUMN ENAME TO NAME;
+ALTER TABLE EMPLOYEE2 RENAME COLUMN SALARY TO SAL;
+ALTER TABLE EMPLOYEE2 RENAME COLUMN DNO TO DEPT_ID;
+
+--이렇게 적어도 된다.
+CREATE TABLE EMPLOYEE2(EMP_ID, NAME, SAL, DEPT_ID) AS
+SELECT ENO, ENAME, SALARY, DNO
+FROM EMPLOYEE;
+
+--5. EMP 테이블을 삭제하세요.
+DROP TABLE EMP;
+
+--6. EMPLOYEE2 테이블의 이름을 EMP로 변경하세요.
+ALTER TABLE EMPLOYEE2 RENAME TO EMP;
+
+--7. DEPT 테이블에서 DNAME 칼럼을 제거하세요.
+ALTER TABLE DEPT DROP COLUMN DNAME;
+
+--8. DEPT 테이블에서 LOC칼럼을 UNUSED로 표시하세요.
+ALTER TABLE DEPT SET UNUSED (LOC);
+ALTER TABLE DEPT RENAME COLUMN LOC TO UNUSED;
+--이름을 바꾸라는 뜻이었어....?
+
+--9.UNUSED 칼럼을 모두 제거하세요.
+ALTER TABLE DEPT DROP UNUSED COLUMN;
+
+--Chap02_ex3
+--emp01만들기
+
+CREATE TABLE EMP01(
+    EMPNO NUMBER(4) PRIMARY KEY,
+    ENAME VARCHAR2(10),
+    HIREDATE DATE
+);
+
+--1.번호가 자동으로 생성되도록  empno_seq시퀀스를 생성하시오
+--(시작값:1 , 증가값:1, 최대값: 100000)
+CREATE SEQUENCE EMPNO_SEQ
+START WITH 1
+INCREMENT BY 1
+MAXVALUE 100000
+;
+
+--2. 사원번호(empno)를 시퀀스로부터 발급받아서 왼쪽 테이블에 데이터를 입력하세요.
+--1)사원이름 : John, 입사일: sysdate
+--2)사원이름 : Tom, 입사일: sysdate
+
+INSERT INTO EMP01 VALUES(EMPNO_SEQ.NEXTVAL, 'John', SYSDATE);
+INSERT INTO EMP01 VALUES(EMPNO_SEQ.NEXTVAL, 'Tom', SYSDATE);
+
+--3.EMP01테이블의 이름 칼럼을 인덱스로 설정하되, 인덱스 이름을 IDX_EMP01_ENAME으로 지정하세요.
+CREATE INDEX IDX_EMP01_ENAME ON EMP01(ENAME);
+
+--인덱스 보기
+SELECT index_name, index_type, table_name, uniqueness
+FROM user_indexes --내장 뷰
+WHERE table_name = 'EMP01';
+

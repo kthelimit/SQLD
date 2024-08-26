@@ -1,0 +1,28 @@
+--Chap02_ex3
+--emp01만들기
+
+CREATE TABLE EMP01(
+    EMPNO NUMBER(4),
+    ENAME VARCHAR2(10),
+    HIREDATE DATE
+);
+
+--1.번호가 자동으로 생성되도록  empno_seq시퀀스를 생성하시오
+--(시작값:1 , 증가값:1, 최대값: 100000)
+CREATE SEQUENCE EMPNO_SEQ
+START WITH 1
+INCREMENT BY 1
+MINVALUE 1
+MAXVALUE 100000
+NOCYCLE 
+NOCACHE;
+
+--2. 사원번호(empno)를 시퀀스로부터 발급받아서 왼쪽 테이블에 데이터를 입력하세요.
+--1)사원이름 : John, 입사일: sysdate
+--2)사원이름 : Tom, 입사일: sysdate
+
+INSERT INTO EMP01 VALUES(EMPNO_SEQ.NEXTVAL, 'John', SYSDATE);
+INSERT INTO EMP01 VALUES(EMPNO_SEQ.NEXTVAL, 'Tom', SYSDATE);
+
+--3.EMP01테이블의 이름 칼럼을 인덱스로 설정하되, 인덱스 이름을 IDX_EMP01_ENAME으로 지정하세요.
+CREATE INDEX IDX_EMP01_ENAME ON EMP01(ENAME);

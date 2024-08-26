@@ -1,0 +1,100 @@
+--chap05_ex2_quiz1
+SELECT MAX(salary) AS maximum, 
+    MIN(salary) AS minimum, 
+    SUM(salary) AS sum, 
+    ROUND(AVG(salary)) AS average
+ FROM employee;
+
+--chap05_ex2_quiz2
+SELECT job, 
+    MAX(salary) AS maximum, 
+    MIN(salary) AS minimum, 
+    SUM(salary) AS sum, 
+    ROUND(AVG(salary)) AS average
+ FROM employee
+GROUP BY job;
+
+
+--chap05_ex2_quiz3
+SELECT job, COUNT(*)
+ FROM employee
+GROUP BY job;
+
+
+--chap05_ex2_quiz4
+SELECT job, COUNT(*) AS manager
+ FROM employee
+WHERE job LIKE '%MANAGER%'
+GROUP BY job;
+
+--Manager 칼럼에서 번호를 중복 없게 찾는 문제였음.(null이 아닌 수들 중 중복 제거한 것임)
+SELECT count(DISTINCT (manager)) AS manager
+ FROM employee; 
+
+
+--chap05_ex2_quiz5
+SELECT (MAX(salary) - MIN(salary)) AS DIFFERENCE
+ FROM employee;
+
+
+--chap05_ex2_quiz6
+SELECT job, MIN(salary)
+ FROM employee
+WHERE manager IS NOT NULL
+GROUP BY job
+HAVING MIN(salary)>=2000
+ORDER BY MIN(salary) DESC;
+
+SELECT job, MIN(salary)
+ FROM employee
+WHERE manager IS NOT NULL
+GROUP BY job
+HAVING NOT MIN(salary)<2000
+ORDER BY MIN(salary) DESC;
+
+
+--chap05_ex2_quiz7
+SELECT dno, 
+    COUNT(*) AS "Number of People", 
+    ROUND(AVG(salary),2) AS salary
+ FROM employee
+GROUP BY dno
+ORDER BY dno;
+
+
+--chap05_ex2_quiz8
+SELECT DECODE(dno, 10,'ACCOUNTING',
+                20,'RESEARCH',
+                30,'SALES',
+                40,'OPERATIONS') AS dname, 
+    DECODE(dno, 10,'NEW YORK',
+                20,'DALLAS',
+                30,'CHICAGO',
+                40,'BOSTON') AS location, 
+    COUNT(*) AS "Number of People", 
+    ROUND(AVG(salary)) AS salary
+ FROM employee
+GROUP BY dno;
+
+--chap05_ex2_quiz9
+SELECT job AS "업무", 
+        SUM(decode(dno, 10,salary,0))AS "부서10",
+        SUM(decode(dno, 20,salary,0)) AS "부서20",
+        SUM(decode(dno, 30,salary,0)) AS "부서30", 
+        sum(salary) AS "총액"
+ FROM employee
+GROUP BY ROLLUP(job);
+
+SELECT job AS "업무", dno,
+        decode(dno, 10,SUM(salary))AS "부서10",
+        decode(dno, 20,SUM(salary)) AS "부서20",
+        decode(dno, 30,SUM(salary)) AS "부서30", 
+        sum(salary) AS "총액"
+ FROM employee
+GROUP BY dno, ROLLUP(job)
+ORDER BY dno;
+
+
+
+
+

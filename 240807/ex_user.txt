@@ -1,0 +1,18 @@
+DROP TABLE dept; --중복시 테이블을 지우기 위한 코드
+
+CREATE TABLE dept (
+    dno   NUMBER(2),    --부서번호
+    dname VARCHAR2(14), --부서명
+    loc   VARCHAR2(13)  --지역명
+);
+DROP TABLE emp; --중복시 테이블을 지우기 위한 코드
+CREATE TABLE emp (
+    eno        NUMBER(4),    --사원번호
+    ename      VARCHAR2(10), --사원이름
+    job        VARCHAR2(9),  --업무명
+    manager    NUMBER(4),    --해당 사원의 상사번호
+    hiredate   DATE,         --입사일
+    salary     NUMBER(7, 2), --급여
+    commission NUMBER(7, 2), --커미션
+    dno        NUMBER(2)     --부서번호
+);

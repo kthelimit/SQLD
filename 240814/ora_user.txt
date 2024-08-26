@@ -1,0 +1,352 @@
+--chap04_ex1_quiz1
+--13자리보다 긴 애들이 있었다..... 그 애들은 제대로 출력이 안됨.
+SELECT employee_id, LPAD(SUBSTR(phone_number,4), 13, '(02)')
+FROM employees;
+
+--문제가 되는 애들도 멀쩡히 나오도록 수정함
+SELECT employee_id, CONCAT('(02)',SUBSTR(phone_number,4))
+FROM employees;
+
+
+--chap04_ex1_quiz2
+SELECT employee_id AS "사원번호", emp_name AS "사원명", hire_date AS "입사일자", FLOOR((MONTHS_BETWEEN(SYSDATE, hire_date))/12) AS "근속년수"
+FROM employees
+WHERE MONTHS_BETWEEN(SYSDATE, hire_date)>=120
+ORDER BY "근속년수" DESC;
+
+SELECT employee_id AS "사원번호", emp_name AS "사원명", hire_date AS "입사일자", ROUND((SYSDATE-hire_date)/365) AS "근속년수"
+FROM employees
+WHERE ROUND((SYSDATE-hire_date)/365)>=10
+ORDER BY 3; --입사일 기준으로 오름차순 정렬
+
+--chap04_ex1_quiz3
+SELECT cust_name, cust_main_phone_number, replace(cust_main_phone_number, '-','/') new_phone_number
+FROM customers;
+
+SELECT cust_name, cust_main_phone_number, translate(cust_main_phone_number, '-','/') new_phone_number
+FROM customers;
+
+--chap04_ex1_quiz4
+
+SELECT cust_name, cust_main_phone_number, translate(cust_main_phone_number, '-0123456789','/MYHERBSALT') new_phone_number
+FROM customers;
+
+--chap04_ex1_quiz5
+--(decode씀)
+
+SELECT cust_name "이름", cust_year_of_birth "출생년도",(TO_CHAR(SYSDATE,'YYYY')- cust_year_of_birth) "나이", 
+DECODE(TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth),-1)/10, 3, '30대', 4, '40대', 5,'50대','기타') "연령대"
+FROM customers;
+
+
+--chap04_ex1_quiz6
+--case쓰기
+SELECT cust_name "이름", (TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth) "나이", 
+CASE 
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth)) BETWEEN 1 AND 19 THEN '10대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 20 AND 29 THEN '20대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 30 AND 39 THEN '30대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 40 AND 49 THEN '40대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 50 AND 59 THEN '50대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 60 AND 69 THEN '60대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 70 AND 79 THEN '70대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 80 AND 89 THEN '80대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 90 AND 99 THEN '90대'
+        WHEN TRUNC((TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth))BETWEEN 100 AND 109 THEN '100대'
+        END "연령대"
+FROM customers;
+
+--case 안쓰고 그냥 출력하기
+SELECT cust_name "이름", (TO_CHAR(SYSDATE,'YYYY') - cust_year_of_birth) "나이", 
+TRUNC((2024 - cust_year_of_birth),-1)||'대' "연령대"
+FROM customers;
+
+
+--집계함수
+SELECT COUNT(*)
+ FROM employees;
+
+SELECT COUNT(employee_id)
+ FROM employees;
+
+--null값을 제외한다. 
+SELECT COUNT(department_id)
+ FROM employees;
+
+SELECT COUNT(DISTINCT department_id)
+ FROM employees;
+
+SELECT DISTINCT department_id
+ FROM employees
+ ORDER BY 1;
+
+SELECT SUM(salary)
+ FROM employees;
+
+SELECT SUM(salary), SUM(DISTINCT salary)
+ FROM employees;
+ 
+SELECT AVG(salary), AVG(DISTINCT salary)
+ FROM employees;
+ 
+SELECT MIN(salary), MAX(salary)
+ FROM employees;
+ 
+SELECT MIN(DISTINCT salary), MAX(DISTINCT salary)
+ FROM employees;
+
+SELECT VARIANCE(salary), STDDEV(salary)
+ FROM employees;
+ 
+SELECT department_id, SUM(salary)
+ FROM employees 
+ GROUP BY department_id 
+ --where절 밑에 그리고 order by절 보다 위에
+ ORDER BY department_id;
+ 
+ 
+ --LOAN_JAN_AMT는 10억 단위래
+SELECT period, region, SUM(loan_jan_amt) totl_jan
+ FROM kor_loan_status
+ WHERE period LIKE '2013%'
+ GROUP BY period, region
+ ORDER BY period, region;
+
+SELECT period, region, SUM(loan_jan_amt) totl_jan
+ FROM kor_loan_status
+ WHERE period ='201311'
+ GROUP BY period, region 
+ --SELECT 내의 집계함수 외의 모든 컬럼과 표현식들은 다 GROUP BY절에 있어야한다고 함..
+ ORDER BY region;
+
+SELECT period, region, SUM(loan_jan_amt) totl_jan
+ FROM kor_loan_status
+ WHERE period ='201311'
+ GROUP BY period, region 
+ HAVING SUM(loan_jan_amt)>100000
+ ORDER BY region;
+
+--rollup절과 cube절
+--2013년의 대출 종류별 총 잔액
+SELECT period, gubun, SUM(loan_jan_amt) totl_jan
+ FROM kor_loan_status
+ WHERE period LIKE '2013%'
+ GROUP BY period, gubun;
+ 
+ SELECT period, gubun, SUM(loan_jan_amt) totl_jan
+ FROM kor_loan_status
+ WHERE period LIKE '2013%'
+ GROUP BY ROLLUP(period, gubun);
+ 
+ SELECT period, gubun, SUM(loan_jan_amt) totl_jan
+ FROM kor_loan_status
+ WHERE period LIKE '2013%'
+ GROUP BY ROLLUP(gubun, period);
+ 
+ SELECT period, gubun, SUM(loan_jan_amt) totl_jan
+ FROM kor_loan_status
+ WHERE period LIKE '2013%'
+ GROUP BY period, ROLLUP(gubun);
+ 
+ 
+ SELECT period, gubun, SUM(loan_jan_amt) totl_jan
+ FROM kor_loan_status
+ WHERE period LIKE '2013%'
+ GROUP BY ROLLUP(period), gubun;
+ 
+ 
+ SELECT period, gubun, SUM(loan_jan_amt) totl_jan
+ FROM kor_loan_status
+ WHERE period LIKE '2013%'
+ GROUP BY CUBE(period, gubun);
+ 
+  
+ SELECT period, gubun, SUM(loan_jan_amt) totl_jan
+ FROM kor_loan_status
+ WHERE period LIKE '2013%'
+ GROUP BY period, CUBE(gubun);
+ 
+ --집합 연산자(교집합, 합집합 등의 그 집합임)
+ CREATE TABLE exp_goods_asia (
+       country VARCHAR2(10),
+       seq     NUMBER,
+       goods   VARCHAR2(80));
+       
+INSERT INTO exp_goods_asia VALUES ('한국', 1, '원유제외 석유류');
+INSERT INTO exp_goods_asia VALUES ('한국', 2, '자동차');
+INSERT INTO exp_goods_asia VALUES ('한국', 3, '전자집적회로');
+INSERT INTO exp_goods_asia VALUES ('한국', 4, '선박');
+INSERT INTO exp_goods_asia VALUES ('한국', 5,  'LCD');
+INSERT INTO exp_goods_asia VALUES ('한국', 6,  '자동차부품');
+INSERT INTO exp_goods_asia VALUES ('한국', 7,  '휴대전화');
+INSERT INTO exp_goods_asia VALUES ('한국', 8,  '환식탄화수소');
+INSERT INTO exp_goods_asia VALUES ('한국', 9,  '무선송신기 디스플레이 부속품');
+INSERT INTO exp_goods_asia VALUES ('한국', 10,  '철 또는 비합금강');
+
+INSERT INTO exp_goods_asia VALUES ('일본', 1, '자동차');
+INSERT INTO exp_goods_asia VALUES ('일본', 2, '자동차부품');
+INSERT INTO exp_goods_asia VALUES ('일본', 3, '전자집적회로');
+INSERT INTO exp_goods_asia VALUES ('일본', 4, '선박');
+INSERT INTO exp_goods_asia VALUES ('일본', 5, '반도체웨이퍼');
+INSERT INTO exp_goods_asia VALUES ('일본', 6, '화물차');
+INSERT INTO exp_goods_asia VALUES ('일본', 7, '원유제외 석유류');
+INSERT INTO exp_goods_asia VALUES ('일본', 8, '건설기계');
+INSERT INTO exp_goods_asia VALUES ('일본', 9, '다이오드, 트랜지스터');
+INSERT INTO exp_goods_asia VALUES ('일본', 10, '기계류');
+
+COMMIT;
+   
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '한국'
+ ORDER BY seq;
+ 
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '일본'
+ ORDER BY seq;
+
+ 
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '한국'
+UNION
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '일본';
+
+ 
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '한국'
+UNION ALL
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '일본';
+
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '한국'
+INTERSECT
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '일본';
+
+--한국 - 일본 한 나머지가 나오고
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '한국'
+MINUS
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '일본';
+ 
+--일본 - 한국 한 나머지가 나옴
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '일본'
+MINUS
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '한국';
+
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '한국'
+UNION
+SELECT seq, goods
+ FROM exp_goods_asia
+ WHERE country = '일본';
+
+
+--항목 2개로 교집합 구하기
+SELECT seq,goods
+ FROM exp_goods_asia
+ WHERE country = '한국'
+INTERSECT
+SELECT seq, goods
+ FROM exp_goods_asia
+ WHERE country = '일본';
+
+SELECT country
+ FROM exp_goods_asia
+ WHERE country = '한국'
+UNION
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '일본';
+ 
+ --ORDER BY는 맨아래쪽(마지막) 쿼리에만
+ SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '한국'
+UNION
+SELECT goods
+ FROM exp_goods_asia
+ WHERE country = '일본'
+ ORDER BY goods;
+
+
+
+SELECT 
+ FROM employees;
+ 
+SELECT 
+ FROM employees;
+ 
+ 
+SELECT 
+ FROM employees;
+
+SELECT 
+ FROM employees;
+ 
+SELECT 
+ FROM employees;
+ 
+ 
+SELECT 
+ FROM employees;
+
+SELECT 
+ FROM employees;
+ 
+SELECT 
+ FROM employees;
+ 
+ 
+SELECT 
+ FROM employees;
+
+SELECT 
+ FROM employees;
+ 
+SELECT 
+ FROM employees;
+ 
+ 
+SELECT 
+ FROM employees;
+
+SELECT 
+ FROM employees;
+ 
+SELECT 
+ FROM employees;
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,81 @@
+--chap_06_ex1_quiz1
+SELECT a.employee_id, a.emp_name, a.job_id, c.start_date, c.end_date, b.department_name
+FROM employees a, departments b, job_history c
+WHERE  a.department_id = b.department_id
+    AND a.job_id = c.job_id(+)
+    AND a.employee_id = 101;    
+
+--chap_06_ex1_quiz2
+SELECT a.employee_id, a.emp_name, b.job_id, b.department_id
+FROM employees a, job_history b
+WHERE a.employee_id = b.employee_id(+)
+AND a.department_id(+) = b.department_id;
+--아우터조인을 한쪽에만 해야했는데 번갈아가며 써서...
+
+
+--chap_06_ex1_quiz3
+SELECT a.department_id, a.department_name
+FROM departments a, employees b
+WHERE a.department_id = b.department_id
+AND b.salary>3000
+ORDER BY a.department_name;
+
+--ANSI
+SELECT a.department_id, a.department_name
+FROM departments a INNER JOIN employees b
+ON(a.department_id = b.department_id)
+WHERE b.salary>3000
+ORDER BY a.department_name;
+
+
+
+
+SELECT a.department_id, a.department_name
+FROM departments a
+WHERE EXISTS (SELECT 1
+            FROM job_history b
+            WHERE a.department_id = b.department_id);
+            
+SELECT department_id, department_name
+FROM departments
+WHERE department_id IN (SELECT department_id
+            FROM job_history);
+
+
+--chap_06_ex1_quiz5
+SELECT emp.years, 
+       emp.employee_id,
+       emp2.emp_name,
+       emp.amount_sold
+  FROM ( SELECT SUBSTR(a.sales_month, 1, 4) as years,
+                a.employee_id, 
+                SUM(a.amount_sold) AS amount_sold
+           FROM sales a,
+                customers b,
+                countries c
+          WHERE a.cust_id = b.cust_id
+            AND b.country_id = c.COUNTRY_ID
+            AND c.country_name = 'Italy'     
+          GROUP BY SUBSTR(a.sales_month, 1, 4), a.employee_id   
+        ) emp,
+       ( SELECT  years, 
+                 MAX(amount_sold) AS max_sold,
+                 MIN(amount_sold) AS min_sold
+          FROM ( SELECT SUBSTR(a.sales_month, 1, 4) as years,
+                        a.employee_id, 
+                        SUM(a.amount_sold) AS amount_sold
+                   FROM sales a,
+                        customers b,
+                        countries c
+                  WHERE a.cust_id = b.CUST_ID
+                    AND b.country_id = c.COUNTRY_ID
+                    AND c.country_name = 'Italy'     
+                  GROUP BY SUBSTR(a.sales_month, 1, 4), a.employee_id    
+               )
+          GROUP BY years
+       ) sale,
+       employees emp2
+  WHERE emp.years = sale.years
+    AND( emp.amount_sold = sale.max_sold  OR  emp.amount_sold = sale.min_sold )
+    AND emp.employee_id = emp2.employee_id        
+ORDER BY years;

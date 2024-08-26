@@ -1,0 +1,38 @@
+--chap03_ex2_quiz1
+CREATE TABLE emp_insert AS
+SELECT *
+    FROM ora_user.employees
+WHERE 1=2; --참이 아닌 명제를 넣어서 데이터를 복사하지 않는 방법
+
+--chap03_ex2_quiz2
+INSERT INTO emp_insert(employee_id, emp_name,hire_date)
+VALUES(1,'Java kim', SYSDATE);
+
+
+--chap03_ex2_quiz3
+INSERT INTO emp_insert(employee_id, emp_name,hire_date)
+VALUES(2,'Side Person', SYSDATE);
+
+--chap03_ex2_quiz4
+CREATE TABLE emp_copy AS
+SELECT *
+    FROM ora_user.employees;
+
+--chap03_ex2_quiz5
+UPDATE EMP_COPY
+SET department_id = 10
+WHERE employee_id = 7788;
+
+--chap03_ex2_quiz6
+CREATE TABLE dept_copy AS
+SELECT *
+    FROM ora_user.departments;
+
+--chap03_ex2_quiz7
+DELETE dept_copy
+WHERE department_name='RESEARCH';
+
+--chap03_ex2_quiz8
+DELETE dept_copy
+WHERE department_id IN(10,30);
+

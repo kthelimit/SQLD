@@ -1,0 +1,279 @@
+--chap08_ex1_quiz1
+--INITCAP구현하기.... 앞글자만 대문자로 변환하기 공백한글자로 단어사이를 구분한다. my_initcap
+CREATE OR REPLACE FUNCTION my_initcap(vs_input VARCHAR2)
+RETURN VARCHAR2
+IS
+v_string VARCHAR2(80) := vs_input;
+v_str1 VARCHAR2(80); --변환이 끝난 부분
+v_str2 VARCHAR2(80); --대문자로 바꿀 문자열
+v_str3 VARCHAR2(80); --변환이 아직 안 일어난 부분
+num1 NUMBER:=1; --현재 위치
+BEGIN
+    LOOP
+        --처음엔 생략할 거라 num1이 1이 아닐때만 시행하게 함
+        IF(num1!=1) THEN
+            v_str1:=SUBSTR(v_string, 1, num1-1);
+        END IF;
+        --현재 위치에서 1개 자르기
+        v_str2:=SUBSTR(v_string, num1,1);
+        --이후 문자열 자르기
+        v_str3:=SUBSTR(v_string, num1+1);
+        --잘라낸 1글자를 대문자로 변환
+        v_str2:=UPPER(v_str2);
+        --결합
+        v_string := v_str1||v_str2||v_str3;
+        --다음 위치로 이동
+        num1:=INSTR(v_string, ' ', num1);
+        IF(num1!=0)THEN
+            num1:=num1+1;
+        END IF;
+        --다음 위치가 0이면 공백 문자가 없다는 뜻이므로 종료
+    EXIT WHEN num1=0;
+    END LOOP;
+    RETURN v_string;
+END;
+
+--테스트
+DECLARE
+v_string VARCHAR2(80);
+BEGIN
+v_string := my_initcap('hello i like an apple');
+DBMS_OUTPUT.PUT_LINE(v_string);
+END;
+
+SELECT my_initcap('my favorite color is blue')
+FROM DUAL;
+
+
+CREATE OR REPLACE FUNCTION my_initcap(vs_input VARCHAR2)
+RETURN VARCHAR2
+IS
+    vn_pos1 NUMBER:=1;--각 단어 시작 위치
+    vs_temp VARCHAR2(100):=ps_string;
+    vs_return VARCHAR2(80); --반환할 대문자로 변환된 문자열 변수
+    vn_len NUMBER; --vs_temp의 길이
+BEGIN
+    WHILE vn_pos1 <>0 --공백 문자를 발견하지 못할 때까지 루프를 돈다
+    LOOP
+        --공백문자의 위치를 가져온다.
+        vn_pos1:=INSTR(vs_temp, '');
+        IF vn_pos1 = 0 THEN --공백문자를 발견하지 못했을 경우, 즉 맨 마지막 단어일 경우....
+            vs_return :=vs_return || UPPER(SUBSTR(vs_temp, 1, 1)) ||SUBSTR(vs_temp,2,vn_len-1);
+        ELSE --공백문자 위치를 기준으로, 맨 첫자는 UPPER를 사용해 대문자로 변환하고, 나머지 문자를 잘라서 변수에 넣는다.
+            vs_return :=vs_return || UPPER(SUBSTR(vs_temp, 1, 1)) ||SUBSTR(vs_temp,2,vn_pos1-2)||'';
+        END IF;
+        
+        vn_len:=LEGTH(vs_temp);
+        --vs_temp변수는 최초 전체 문자열이 들어오며, 루프를 돌면서 한 단어씩 차례로 없앤다.
+        vs_temp := SUBSTR(vs_temp, vn_pos1+1, vn_len-vn_pos1);
+    END LOOP;
+RETURN vs_return;
+END;
+
+--chap08_ex1_quiz2
+--매개변수로 문자형으로 일자를 받아 해당 일자의 월 마지막 날짜를 문자형으로 반환하는 함수를 my_last_Day라는 이름으로 만들어보자
+CREATE OR REPLACE FUNCTION my_last_day(vs_input VARCHAR2)
+RETURN VARCHAR2
+IS
+v_string VARCHAR2(80):=TO_DATE(vs_input, 'YYYY/MM/DD'); --2013-02-01 > 13/02/01
+v_str1 VARCHAR2(10);
+BEGIN
+--월 추출
+v_str1:=SUBSTR(v_string,4,2);
+    CASE WHEN v_str1 IN('01','03','05','07','08','10','12') THEN 
+        RETURN '31일';
+        WHEN v_str1 ='02' THEN 
+        RETURN '28일';
+        ELSE 
+        RETURN '30일';
+    END CASE;
+END;
+
+CREATE OR REPLACE FUNCTION my_last_day(p_input_date VARCHAR2)
+RETURN VARCHAR2
+IS
+    vs_input_date VARCHAR2(10) := p_input_Date;
+    vs_temp_year VARCHAR2(4);
+    vs_temp_month VARCHAR2(2);
+    vs_return_date VARCHAR2(50);
+BEGIN
+    --입력일자에서 '-'를 제거
+    vs_input_date:= REPLACE(vs_input_date, '-','');
+    
+    --입력일자에서 '-'를 제거한 문자열 길이가 8이 아닌 경우 오류메시지 출력
+    IF LENGTH(vs_input_date)<>8 THEN
+        vs_return_date := '입력일자 오류';
+    ELSE
+        vs_temp_year := SUBSTR(vs_input_date, 1,4); --년도 가져옴
+        vs_temp_month := SUBSTR(vs_input_date, 5,2); --월을 가져옴
+        
+        IF vs_temp_month = '12' THEN --월이 12월이면
+            --년도는 +1,
+            vs_temp_year:=TO_CHAR(TO_NUMBER(vs_temp_year)+1);
+            --월은 무조건 1월
+            vs_temp_month:='01';
+        ELSE
+        --12월이 아니면 기존 월에서 +1
+        vs_temp_month:=TRIM(TO_CHAR(TO_NUMBER(vs_temp_month)+1,'00'));
+        END IF;
+        
+        --년도+다음월+01일에서 -1일을 하면 입력일자 월의 마지막 일자가 나옴
+        vs_return_date := TO_CHAR(TO_DATE(vs_temp_year||vs_temp_month||'01','YYYY-MM-DD') -1, 'YYYYMMDD');       
+    END IF;
+    
+    return vs_return_date;    
+END;
+
+
+
+
+--테스트
+DECLARE
+v_string VARCHAR2(80);
+BEGIN
+v_string := my_last_day('2013/2/1');
+DBMS_OUTPUT.PUT_LINE(v_string);
+END;
+
+SELECT my_last_day('2013-02-01')
+FROM DUAL;
+
+--chap08_ex1_quiz3
+--IF문을 제거하고 동일한 로직을 처리하도록 MERGE문을 사용해 my_new_job_proc2를 작성해보자.
+--원본 프로시저
+CREATE OR REPLACE PROCEDURE my_new_job_proc
+    (p_job_id IN JOBS.JOB_ID%TYPE,
+    p_job_title IN JOBS.JOB_TITLE%TYPE,
+    p_min_sal IN JOBS.MIN_SALARY%TYPE:=10,
+    p_max_sal IN JOBS.MAX_SALARY%TYPE:=100)
+IS
+    vn_cnt NUMBER :=0;
+    vn_cur_date JOBS.UPDATE_DATE%TYPE := SYSDATE;
+BEGIN
+    --1000보다 작으면 메시지 출력 후 빠져나간다.
+    IF p_min_sal < 1000 THEN
+        DBMS_OUTPUT.PUT_LINE('최소 급여값은 1000 이상이어야 합니다.');
+        RETURN;
+    END IF;
+    
+    --동일한 job_id가 있는지 체크
+    SELECT COUNT(*)
+    INTO vn_cnt
+    FROM jobs
+    WHERE job_id = p_job_id;
+    
+    --없으면 insert
+    IF vn_cnt=0 THEN
+        INSERT INTO JOBS(job_id, job_title, min_salary, max_salary, create_date, update_date)
+            VALUES(p_job_id, p_job_title, p_min_sal, p_max_sal ,vn_cur_date,vn_cur_date);
+            
+    ELSE -- 있으면 업데이트
+        UPDATE JOBS
+        SET job_title = p_job_title,
+            min_salary = p_min_sal,
+            max_salary = p_max_sal,
+            update_date = vn_cur_date
+        WHERE job_id = p_job_id;
+    END IF;
+    
+    --OUT 매개변수에 일자 할당
+--    p_upd_date := vn_cur_date;
+    COMMIT;
+END; 
+
+
+
+CREATE OR REPLACE PROCEDURE my_new_job_proc_merge
+    (p_job_id IN JOBS.JOB_ID%TYPE,
+    p_job_title IN JOBS.JOB_TITLE%TYPE,
+    p_min_sal IN JOBS.MIN_SALARY%TYPE,
+    p_max_sal IN JOBS.MAX_SALARY%TYPE)
+IS
+    vn_cnt NUMBER :=0;
+    vn_cur_date JOBS.UPDATE_DATE%TYPE := SYSDATE;
+BEGIN
+    --1000보다 작으면 메시지 출력 후 빠져나간다.
+    IF p_min_sal < 1000 THEN
+        DBMS_OUTPUT.PUT_LINE('최소 급여값은 1000 이상이어야 합니다.');
+        RETURN;
+    END IF;
+ 
+    MERGE INTO jobs a
+    USING (SELECT p_job_id AS job_id FROM DUAL)b
+    ON (a.job_id = b.job_id)
+    WHEN MATCHED THEN
+        UPDATE SET a.job_title = p_job_title,
+                    a.min_salary = p_min_sal,
+                    a.max_salary = p_max_sal
+    WHEN NOT MATCHED THEN
+        INSERT (a.job_id, a.job_title, a.min_salary, a.max_salary, a.create_date, a.update_date)
+        VALUES (p_job_id,p_job_title, p_min_sal, p_max_sal, SYSDATE, SYSDATE);
+        
+    COMMIT;
+END; 
+
+EXEC my_new_job_proc_merge('N_SM_JOB','New Sample JOB1', 2000, 6000);
+
+
+
+
+--chap08_ex1_quiz4
+--부서 테이블의 복사본 테이블을 만들어보자...
+CREATE TABLE ch09_dapartments AS
+SELECT DEPARTMENT_ID, DEPARTMENT_NAME, PARENT_ID
+FROM DEPARTMENTS;
+
+--프로시저 만들기
+CREATE OR REPLACE PROCEDURE my_dept_manage_proc(
+                p_department_id IN departments.DEPARTMENT_ID%TYPE, 
+                p_department_name IN departments.DEPARTMENT_NAME%TYPE, 
+                p_parent_id IN departments.PARENT_ID%TYPE,
+                p_flag IN VARCHAR2)
+IS
+    vn_cnt1 NUMBER:=0;
+    vn_cnt2 NUMBER:=0;
+BEGIN
+    --동작 flag 매개변수가 소문자로 들어올 수도 있으므로 대문자로 변환
+    IF UPPER(p_flag) ='UPSERT' THEN
+        MERGE INTO ch09_dapartments a
+        USING (SELECT p_department_id AS department_id FROM DUAL)b
+        ON(a.department_id = b.department_id)
+        WHEN MATCHED THEN
+            UPDATE SET a.department_name = p_department_name,
+                    a.parent_id = p_parent_id
+        WHEN NOT MATCHED THEN            
+            INSERT(a.department_id, a.department_name, a.parent_id) 
+            VALUES(p_department_id, p_department_name,p_parent_id);
+            
+    --해당 부서를 삭제하라는 플래그         
+    ELSIF UPPER(p_flag) ='DELETE' THEN   
+        --부서가 있는지 체크해봄
+        SELECT COUNT(8)
+        INTO vn_cnt1
+        FROM ch09_dapartments
+        WHERE department_id = p_department_id;
+        IF vn_cnt1 = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('해당 부서가 없어 삭제할 수 없습니다.');
+            RETURN;
+        END IF;   
+    
+        --사원 테이블에 해당 부서 번호의 사원이 있는지 체크
+        SELECT COUNT(*)
+        INTO vn_cnt2
+        FROM employees
+        WHERE department_id = p_department_id;        
+        --해당 부서에 속한 사원이 있으면 메시지와 함께 프로시저 종료
+        IF vn_cnt2>0 THEN        
+            DBMS_OUTPUT.PUT_LINE('해당 부서에 속한 사원이 존재하므로 삭제할 수 없습니다.');
+            RETURN;
+        END IF;
+        
+        DELETE FROM ch09_dapartments
+        WHERE department_id = p_department_id;        
+    END IF;
+    
+    COMMIT;
+END;
+
+EXEC my_dept_manage_proc(280, 'vip배송부', 10, 'upsert');
+

@@ -1,0 +1,30 @@
+--chap04_ex2_quiz1
+SELECT SUBSTR(hiredate,1,2) "입사년도", SUBSTR(hiredate,4,2)"입사한 달"
+FROM employee
+WHERE hiredate IS NOT NULL;
+
+--chap04_ex2_quiz2
+SELECT *
+FROM employee
+WHERE SUBSTR(hiredate,4,2)='04';
+
+--chap04_ex2_quiz3
+SELECT *
+FROM employee
+WHERE MOD(eno,2)=0;
+
+--chap04_ex2_quiz4
+SELECT TO_CHAR(hiredate, 'YY/MON/DD/DAY')
+FROM employee
+WHERE hiredate IS NOT NULL;
+
+--chap04_ex2_quiz5
+SELECT NVL(manager,0)
+FROM employee;
+
+
+--chap04_ex2_quiz6
+SELECT salary, job,
+DECODE(JOB,'ANALYST', salary+200,'SALESMAN',salary+180, 'MANAGER', salary+150, 
+            'CLERK', salary+100, salary) AS new_salary
+FROM employee;

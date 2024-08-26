@@ -1,0 +1,107 @@
+--chap08_ex2_quiz1
+SET SERVEROUTPUT ON; --스크립트 출력에 결과가 표시되게 된다.
+
+DECLARE
+    vn_dname department.dname%TYPE;
+    vn_dno department.dno%TYPE;
+BEGIN
+    SELECT dno
+    INTO vn_dno
+    FROM employee
+    WHERE ename = 'KING';
+    
+    SELECT dname
+    INTO vn_dname
+    FROM department
+    WHERE dno = vn_dno;    
+    DBMS_OUTPUT.PUT_LINE(vn_dno ||'-'|| vn_dname);
+END;
+
+DECLARE
+    vn_dname department.dname%TYPE;
+    vn_dno department.dno%TYPE;
+BEGIN
+    SELECT a.dno, b.dname
+    INTO vn_dno, vn_dname
+    FROM employee a, department b
+    WHERE a.ename = 'KING'
+    AND a.dno = b.dno; 
+    DBMS_OUTPUT.PUT_LINE(vn_dno ||'-'|| vn_dname);
+END;
+
+DECLARE
+    vemp employee%rowtype;
+    vdname varchar2(14);
+BEGIN
+    SELECT * 
+    INTO vemp
+    FROM employee
+    WHERE ename = 'KING';
+    
+    IF(vemp.dno = 10) THEN
+    vdname := 'ACCOUNTING';
+    ELSIF(vemp.dno=20) THEN
+    vdname := 'RESERACH';
+    ELSIF(vemp.dno=30) THEN
+    vdname := 'SALES';
+    ELSIF(vemp.dno=40) THEN
+    vdname := 'OPERATION';
+    END IF;
+    
+    DBMS_OUTPUT.PUT_LINE('사번/이름/부서명');
+    DBMS_OUTPUT.PUT_LINE('---------------------');
+    DBMS_OUTPUT.PUT_LINE(vemp.eno||'/'||vemp.ename||'/'||vdname);
+ END;
+
+
+
+--chap08_ex2_quiz2
+DECLARE
+    n NUMBER :=1;
+    tot NUMBER :=0;
+BEGIN
+    LOOP
+    tot := tot+n;
+    n := n+1;
+    EXIT WHEN n>10;
+    END LOOP;
+    DBMS_OUTPUT.PUT_LINE('Tot : '||tot);
+END;
+
+DECLARE
+    n NUMBER :=1;
+    tot NUMBER :=0;
+BEGIN
+    LOOP
+    tot := tot+n;
+    n := n+1;
+    if n>10 then
+        exit;
+    end if;
+    END LOOP;
+    DBMS_OUTPUT.PUT_LINE('Tot : '||tot);
+END;
+
+--chap08_ex2_quiz3
+DECLARE
+    tot NUMBER :=0;
+BEGIN
+FOR i IN 1..10
+    LOOP
+    tot := tot+i;
+    END LOOP;
+    DBMS_OUTPUT.PUT_LINE('Tot : '||tot);
+END;
+
+--chap08_ex2_quiz4
+DECLARE
+    n NUMBER :=1;
+    tot NUMBER :=0;
+BEGIN
+    WHILE n<=10
+    LOOP
+    tot := tot+n;
+    n := n+1;
+    END LOOP;
+    DBMS_OUTPUT.PUT_LINE('Tot : '||tot);
+END;

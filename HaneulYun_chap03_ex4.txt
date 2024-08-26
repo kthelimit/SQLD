@@ -1,0 +1,61 @@
+--chap03_ex4_quiz1
+CREATE VIEW v_em_dno AS
+SELECT eno, ename, dno
+FROM employee
+WHERE dno = 20;
+
+--chap03_ex4_quiz2
+CREATE OR REPLACE VIEW v_em_dno AS
+SELECT eno, ename, dno, salary, job
+FROM employee
+WHERE dno = 20;
+
+--chap03_ex4_quiz4
+CREATE OR REPLACE VIEW v_em_dno AS
+SELECT eno, ename, dno, salary, job
+FROM employee
+WHERE dno = 20 WITH CHECK OPTION;
+
+--chap03_ex4_quiz5
+--2번 문제의 뷰로 갱신하고 넣는다.
+DELETE FROM employee
+WHERE ename IN('BELITA','ERICA','KALI','MIA','ZINNA');
+INSERT INTO v_em_dno VALUES(5100, 'BELITA',10, 1500, 'CLERK'); --실패
+INSERT INTO v_em_dno VALUES(5200, 'ERICA',20, 2300, 'ANALYST');
+INSERT INTO v_em_dno VALUES(5300, 'KALI',30, 1750, 'SALESMAN'); --실패
+INSERT INTO v_em_dno VALUES(5400, 'MIA',20, 950, 'ANALYST');
+INSERT INTO v_em_dno VALUES(5500, 'ZINNA',10, 1050, 'CLERK'); --실패
+
+SELECT *
+FROM v_em_dno;
+
+--chap03_ex4_quiz6
+CREATE OR REPLACE VIEW v_em_dno AS
+SELECT eno, ename, dno, salary, job
+FROM employee
+WHERE dno = 20 WITH READ ONLY;
+
+--chap03_ex4_quiz7
+--부서명이 employee에 없어서(department에 있음) 복합뷰로 구성해야한다.
+CREATE OR REPLACE VIEW emp_dept AS
+SELECT a.eno, a.ename, a.dno, b.dname
+FROM employee a, department b
+WHERE a.dno = b.dno;
+
+--chap03_ex4_quiz8
+SELECT *
+FROM v_em_dno;
+
+SELECT *
+FROM emp_dept;
+
+--text-> 뷰를 생성하는 스크립트
+SELECT view_name, text
+FROM user_views;
+
+SELECT *
+FROM user_views;
+
+--chap03_ex4_quiz9
+DROP VIEW v_em_dno;
+DROP VIEW emp_dept;

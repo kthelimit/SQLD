@@ -1,0 +1,184 @@
+--테이블 생성
+--다들 구조만 복사해왔다.
+CREATE TABLE dept_origin
+AS SELECT * FROM department WHERE 0=1;
+
+DROP TABLE dept_copy;
+
+CREATE TABLE dept_copy
+AS
+SELECT * FROM department WHERE 0=1;
+
+
+--INSERT에 적용할 트리거를 생성
+CREATE OR REPLACE TRIGGER trigger_sample1
+    AFTER INSERT
+    ON dept_origin
+    FOR EACH ROW
+BEGIN
+    IF inserting THEN
+        DBMS_OUTPUT.PUT_LINE('Insert Trigger 발생');
+        INSERT INTO dept_copy
+            VALUES(:new.dno, :new.dname, :new.loc);
+    END IF;
+END;
+
+--dept_origin에 INSERT할 때마다 dept_copy에도 데이터를 넣어주는 것 같음
+
+INSERT INTO dept_origin VALUES(20, 'ACCOUNTING', 'NEW YORK');
+
+--UPDATE와 DELETE 트리거
+ALTER TABLE dept_copy
+ADD modtype NCHAR(2);
+
+CREATE OR REPLACE TRIGGER trigger_sample2
+    AFTER UPDATE OR DELETE
+    ON dept_origin
+    FOR EACH ROW
+DECLARE
+    v_modtype NCHAR(2);
+BEGIN
+    IF updating THEN
+        DBMS_OUTPUT.PUT_LINE('Updating Trigger 발생');
+        v_modtype :='수정';
+    ELSIF deleting THEN
+        DBMS_OUTPUT.PUT_LINE('Deleting Trigger 발생');
+        v_modtype := '삭제';
+    END IF;
+    INSERT INTO dept_copy
+    VALUES (:old.dno, :old.dname, :old.loc, v_modtype);
+END;
+
+UPDATE dept_origin SET dno=30, dname='SALES', loc='CHICAGO'
+WHERE dno=10;
+
+DELETE dept_origin
+WHERE dno=30;
+
+--chap08_ex3_quiz1
+
+
+--chap08_ex3_quiz2
+
+
+--chap08_ex3_quiz3
+
+
+--chap08_ex3_quiz4
+DROP TABLE 상품;
+DROP TABLE 입고;
+DROP TABLE 재고;
+CREATE TABLE 상품(
+품번 NUMBER,
+항목명 VARCHAR2(100),
+단가 NUMBER
+);
+
+CREATE TABLE 입고(
+품번 NUMBER,
+수량 NUMBER,
+금액 NUMBER
+);
+
+CREATE TABLE 재고(
+품번 NUMBER,
+수량 NUMBER,
+금액 NUMBER
+);
+
+CREATE TABLE 출고(
+품번 NUMBER,
+수량 NUMBER,
+금액 NUMBER
+);
+
+INSERT INTO 상품 VALUES(100, '새우깡', 1500);
+INSERT INTO 상품 VALUES(200, '감자깡', 1000);
+INSERT INTO 상품 VALUES(300, '맛동산', 2000);
+INSERT INTO 상품 VALUES(400, '양파링', 1800);
+INSERT INTO 상품 VALUES(500, '고구마깡', 1600);
+
+INSERT INTO 입고 VALUES(100,2,1500);
+
+INSERT INTO 재고 VALUES(100,2,3000);
+
+--입고 TRIGGER
+CREATE OR REPLACE TRIGGER trigger_insert
+    AFTER INSERT
+    ON 입고
+    FOR EACH ROW
+BEGIN
+    IF inserting THEN
+    MERGE INTO 재고 a
+    USING(SELECT :new.품번 AS 품번,:new.수량,:new.금액 FROM DUAL)b
+    ON(a.품번 = b.품번)
+    WHEN MATCHED THEN
+        UPDATE SET a.수량 = a.수량+:new.수량,
+                   a.금액 = a.금액+ :new.수량*:new.금액
+    WHEN NOT MATCHED THEN
+        INSERT(a.품번, a.수량, a.금액) VALUES(:new.품번,:new.수량,:new.금액*:new.수량);
+    END IF;
+END;
+
+--답
+CREATE OR REPLACE TRIGGER 입고_Trigger
+    AFTER INSERT
+    ON 입고
+    FOR EACH ROW
+DECLARE
+ v_cnt NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_cnt
+    FROM 재고
+    WHERE 품번 = :new.품번;
+    
+    IF(v_cnt=0) THEN --새로운 상품
+        INSERT INTO 재고 VALUES(:new.품번,:new.수량,:new.금액 * :new.수량);
+    ELSE --재고에 있는 상품
+        UPDATE 재고 SET
+        수량 = 수량 + :new.수량,
+        금액 = 금액 + (:new.수량 * :new.금액)
+        WHERE 품번 = :new.품번;
+    END IF;     
+END;
+
+INSERT INTO 입고 VALUES(200,1,1000);
+INSERT INTO 입고 VALUES(100,3,1500);
+INSERT INTO 입고 VALUES(200,1,1000);
+COMMIT;
+
+
+DROP TRIGGER 
+
+INSERT INTO 입고 VALUES(150,3,2500);
+DELETE 재고 WHERE 품번 = 150;
+
+--출고 TRIGGER
+CREATE OR REPLACE TRIGGER 출고_Trigger
+    AFTER INSERT
+    ON 출고
+    FOR EACH ROW
+DECLARE
+ v_cnt NUMBER;
+BEGIN
+    SELECT 수량 - :new.수량
+    INTO v_cnt
+    FROM 재고
+    WHERE 품번 = :new.품번;
+    
+    IF(v_cnt=0) THEN 
+        DELETE 
+        FROM 재고 
+        WHERE 품번 = :new.품번;
+    ELSE
+        UPDATE 재고
+            SET 수량 = 수량 -:new.수량, 금액 = 금액 - (:NEW.수량 * :new.금액)
+        WHERE 품번 = :new.품번;  
+    END IF;     
+END;
+
+INSERT INTO 출고 VALUES (200,1,1000);
+
+
+COMMIT;

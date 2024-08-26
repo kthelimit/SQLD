@@ -1,0 +1,102 @@
+--chap05_ex1_quiz1
+SELECT TO_CHAR(HIRE_DATE, 'YYYY') AS "입사년도", COUNT(*)
+FROM employees
+GROUP BY TO_CHAR(HIRE_DATE, 'YYYY')
+ORDER BY 1;
+
+--chap05_ex1_quiz2
+SELECT period, region, SUM(loan_jan_amt)
+ FROM kor_loan_status
+WHERE period LIKE '2012%'
+GROUP BY period, region;
+
+
+--chap05_ex1_quiz3
+--제시된 쿼리
+SELECT period, gubun, SUM(loan_jan_amt) totl_jan
+FROM kor_loan_status
+WHERE period LIKE '2013%'
+GROUP BY period, ROLLUP(gubun);
+
+--똑같이 만들어주기
+SELECT period, gubun, SUM(loan_jan_amt) totl_jan
+FROM kor_loan_status
+WHERE period LIKE '2013%'
+GROUP BY period, gubun
+UNION
+SELECT period, '', SUM(loan_jan_amt) totl_jan
+FROM kor_loan_status
+WHERE period LIKE '2013%'
+GROUP BY period;
+
+--chap05_ex1_quiz4
+--제시된 쿼리
+SELECT period, 
+    CASE WHEN gubun = '주택담보대출' THEN SUM(loan_jan_amt) ELSE 0 END 주택담보대출액,
+    CASE WHEN gubun = '기타대출' THEN SUM(loan_jan_amt) ELSE 0 END 기타대출액
+ FROM kor_loan_status
+ WHERE period = '201311'
+ GROUP BY period, gubun;
+ 
+ --똑같이 구현하기
+SELECT period, 0 주택담보대출액, SUM(loan_jan_amt) 기타대출액
+ FROM kor_loan_status
+WHERE period = '201311'
+AND gubun = '기타대출'
+GROUP BY period
+UNION
+SELECT period, SUM(loan_jan_amt) 주택담보대출액, 0 기타대출액
+ FROM kor_loan_status
+WHERE period = '201311'
+AND gubun = '주택담보대출'
+GROUP BY period;
+ 
+
+--chap05_ex1_quiz5
+SELECT region, 
+    SUM(DECODE(period, '201111',loan_jan_amt,0))"201111", 
+    SUM(DECODE(period, '201112',loan_jan_amt,0))"201112",
+    SUM(DECODE(period, '201210',loan_jan_amt,0))"201210",
+    SUM(DECODE(period, '201211',loan_jan_amt,0))"201211",
+    SUM(DECODE(period, '201212',loan_jan_amt,0))"201212",
+    SUM(DECODE(period, '201310',loan_jan_amt,0))"201310",
+    SUM(DECODE(period, '201311',loan_jan_amt,0))"201311"
+ FROM kor_loan_status
+ GROUP BY region
+ ORDER BY region;
+ 
+ SELECT region,
+    SUM(AMT1) AS "201111",
+    SUM(AMT2) AS "201112",
+    SUM(AMT3) AS "201210",
+    SUM(AMT4) AS "201211",
+    SUM(AMT5) AS "201212",
+    SUM(AMT6) AS "201310",
+    SUM(AMT7) AS "201311"
+ FROM(SELECT region,
+        CASE WHEN PERIOD = '201111' THEN LOAN_JAN_AMT ELSE 0 END AMT1,
+        CASE WHEN PERIOD = '201112' THEN LOAN_JAN_AMT ELSE 0 END AMT2,
+        CASE WHEN PERIOD = '201210' THEN LOAN_JAN_AMT ELSE 0 END AMT3,
+        CASE WHEN PERIOD = '201211' THEN LOAN_JAN_AMT ELSE 0 END AMT4,
+        CASE WHEN PERIOD = '201212' THEN LOAN_JAN_AMT ELSE 0 END AMT5,
+        CASE WHEN PERIOD = '201310' THEN LOAN_JAN_AMT ELSE 0 END AMT6,
+        CASE WHEN PERIOD = '201311' THEN LOAN_JAN_AMT ELSE 0 END AMT7
+        FROM kor_loan_status)
+GROUP BY region
+ORDER BY region;
+
+SELECT region,
+    SUM(CASE WHEN PERIOD = '201111' THEN LOAN_JAN_AMT ELSE 0 END) AS "201111",
+    SUM(CASE WHEN PERIOD = '201112' THEN LOAN_JAN_AMT ELSE 0 END) AS "201112",
+    SUM(CASE WHEN PERIOD = '201210' THEN LOAN_JAN_AMT ELSE 0 END) AS "201210",
+    SUM(CASE WHEN PERIOD = '201211' THEN LOAN_JAN_AMT ELSE 0 END) AS "201211",
+    SUM(CASE WHEN PERIOD = '201212' THEN LOAN_JAN_AMT ELSE 0 END) AS "201212",
+    SUM(CASE WHEN PERIOD = '201310' THEN LOAN_JAN_AMT ELSE 0 END) AS "201310",
+    SUM(CASE WHEN PERIOD = '201311' THEN LOAN_JAN_AMT ELSE 0 END) AS "201311"
+ FROM kor_loan_status
+GROUP BY region
+ORDER BY region;
+
+
+
+
